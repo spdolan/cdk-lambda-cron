@@ -21,7 +21,11 @@
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"
-    ]
+    ],
+    "baseUrl": ".", // This must be specified if "paths" is.
+    "paths": {
+      "@": ["."] // This mapping is relative to "baseUrl"
+    }
   },
   "exclude": [
     "node_modules",

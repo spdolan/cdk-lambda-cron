@@ -1,21 +1,26 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
-import { CdkLambdaCronStack } from '../lib/cdk-lambda-cron-stack';
+import * as cdk from '@aws-cdk/core';
+import { NodejsLambdaStack } from '../lib/nodejs-lambda/nodejs-lambda-stack';
+import { EventCRONStack } from '../lib/event-cron/event-cron-stack';
+
+// pull environments - this is usually done implicitly by CDK
+const defaultEnv = {
+  account: process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEFAULT_REGION,
+};
 
 const app = new cdk.App();
-new CdkLambdaCronStack(app, 'CdkLambdaCronStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+const usDebtLambda = new NodejsLambdaStack(app, 'USDebtLambda', {
+  env: defaultEnv,
+  lambdaEntry: `@/lib/lambda-fns/nodejs-lambda/index.ts`
+})
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+const usDebtLambdaCRON = new EventCRONStack(app, 'USDebtCRONTrigger', {
+  env: defaultEnv,
+  lambda: usDebtLambda.lambda
+})
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
-});
+// Stack Dependencies
+usDebtLambdaCRON.addDependency(usDebtLambda)
